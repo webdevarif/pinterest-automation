@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/post-pins",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  pinterestAccounts PinterestAccount[]
+  pinQueues     PinQueue[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PinterestAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  pinterestId   String   @unique
+  username      String
+  accessToken   String
+  refreshToken  String?
+  tokenExpires  DateTime?
+  boards        PinterestBoard[]
+  pinQueues     PinQueue[]
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PinterestBoard {
+  id                String   @id @default(cuid())
+  pinterestAccountId String
+  boardId           String
+  name              String
+  description       String?
+  url               String
+  pinCount          Int      @default(0)
+  pinQueues         PinQueue[]
+  pinterestAccount  PinterestAccount @relation(fields: [pinterestAccountId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([pinterestAccountId, boardId])
+}
+
+model PinQueue {
+  id                String   @id @default(cuid())
+  userId            String
+  pinterestAccountId String
+  boardId           String?
+  title             String
+  description       String
+  imageUrl          String
+  link              String?
+  scheduledAt       DateTime
+  posted            Boolean  @default(false)
+  postedAt          DateTime?
+  errorMessage      String?
+  retryCount        Int      @default(0)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinterestAccount  PinterestAccount @relation(fields: [pinterestAccountId], references: [id], onDelete: Cascade)
+  board             PinterestBoard? @relation(fields: [boardId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

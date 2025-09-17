@@ -1,0 +1,15 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    PINTEREST_CLIENT_ID: process.env.PINTEREST_CLIENT_ID,
+    PINTEREST_CLIENT_SECRET: process.env.PINTEREST_CLIENT_SECRET,
+    DATABASE_URL: process.env.DATABASE_URL,
+  },
+}
+
+module.exports = nextConfig
