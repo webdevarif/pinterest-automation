@@ -21,15 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const body = externalPinSchema.parse(req.body)
     const { userId, boardId, title, description, imageUrl, link, scheduledAt } = body
 
-    // Verify user exists
+    // Verify user exists and has Pinterest setup
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        pinterestAccounts: {
-          include: {
-            boards: true,
-          },
-        },
+      select: {
+        id: true,
+        pinterestAccessToken: true,
       },
     })
 
@@ -37,16 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: 'User not found' })
     }
 
-    // Find Pinterest account
-    const pinterestAccount = user.pinterestAccounts[0]
-    if (!pinterestAccount) {
+    if (!user.pinterestAccessToken) {
       return res.status(404).json({ message: 'No Pinterest account linked' })
-    }
-
-    // Verify board exists
-    const board = pinterestAccount.boards.find(b => b.boardId === boardId)
-    if (!board) {
-      return res.status(404).json({ message: 'Board not found' })
     }
 
     const scheduledDate = scheduledAt ? new Date(scheduledAt) : new Date()
@@ -55,7 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pinQueue = await prisma.pinQueue.create({
       data: {
         userId,
-        pinterestAccountId: pinterestAccount.id,
         boardId,
         title,
         description,

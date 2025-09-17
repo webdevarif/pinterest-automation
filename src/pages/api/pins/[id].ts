@@ -43,10 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id,
           userId: session.user.id,
         },
-        include: {
-          pinterestAccount: true,
-          board: true,
-        },
       })
 
       if (!pin) {

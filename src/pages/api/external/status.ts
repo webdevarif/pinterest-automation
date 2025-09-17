@@ -22,10 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pins = await prisma.pinQueue.findMany({
       where,
-      include: {
-        pinterestAccount: true,
-        board: true,
-      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -33,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({
       success: true,
-      pins: pins.map(pin => ({
+      pins: pins.map((pin: any) => ({
         id: pin.id,
         title: pin.title,
         description: pin.description,
@@ -44,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         postedAt: pin.postedAt,
         errorMessage: pin.errorMessage,
         retryCount: pin.retryCount,
-        boardName: pin.board?.name,
+        boardId: pin.boardId,
       })),
     })
   } catch (error) {

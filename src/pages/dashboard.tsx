@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Container,
   Typography,
@@ -53,9 +53,7 @@ interface PinQueue {
   postedAt?: string
   errorMessage?: string
   retryCount: number
-  board?: {
-    name: string
-  }
+  boardId?: string
 }
 
 interface Board {
@@ -82,15 +80,7 @@ export default function Dashboard() {
     scheduledAt: new Date(),
   })
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/')
-    } else if (session) {
-      checkPinterestSetup()
-    }
-  }, [session, status, router])
-
-  const checkPinterestSetup = async () => {
+  const checkPinterestSetup = useCallback(async () => {
     try {
       const response = await fetch('/api/pinterest/boards')
       if (response.status === 401) {
@@ -103,7 +93,15 @@ export default function Dashboard() {
       console.error('Error checking Pinterest setup:', error)
       router.push('/setup/pinterest')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/')
+    } else if (session) {
+      checkPinterestSetup()
+    }
+  }, [session, status, router, checkPinterestSetup])
 
   const fetchData = async () => {
     try {
@@ -276,7 +274,7 @@ export default function Dashboard() {
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>{pin.board?.name || 'N/A'}</TableCell>
+                        <TableCell>{pin.boardId || 'N/A'}</TableCell>
                         <TableCell>
                           {format(new Date(pin.scheduledAt), 'MMM dd, yyyy HH:mm')}
                         </TableCell>

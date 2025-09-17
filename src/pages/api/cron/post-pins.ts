@@ -49,6 +49,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         // Check if token is expired and refresh if needed
         let accessToken = pin.user.pinterestAccessToken
+        if (!accessToken) {
+          throw new Error('No Pinterest access token found')
+        }
+
         if (pin.user.pinterestTokenExpires && pin.user.pinterestTokenExpires <= now) {
           // For client credentials flow, we need to get a new token
           const pinterestAPI = new PinterestAPI(
