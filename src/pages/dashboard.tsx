@@ -28,6 +28,7 @@ import {
   Select,
   MenuItem,
   Alert,
+  Link,
 } from '@mui/material'
 import {
   Add,
@@ -39,6 +40,7 @@ import {
 } from '@mui/icons-material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { format } from 'date-fns'
+import NextLink from 'next/link'
 
 interface PinQueue {
   id: string
@@ -368,6 +370,14 @@ export default function Dashboard() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Box sx={{ mt: 4, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          <Link component={NextLink} href="/privacy" color="primary">
+            Privacy Policy
+          </Link>
+        </Typography>
+      </Box>
     </Container>
   )
 }

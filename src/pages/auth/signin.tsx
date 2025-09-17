@@ -9,8 +9,10 @@ import {
   CardContent,
   Button,
   CircularProgress,
+  Link,
 } from '@mui/material'
 import { Pinterest } from '@mui/icons-material'
+import NextLink from 'next/link'
 
 export default function SignIn() {
   const { data: session, status } = useSession()
@@ -52,6 +54,15 @@ export default function SignIn() {
           >
             Connect with Pinterest
           </Button>
+          
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              By connecting your account, you agree to our{' '}
+              <Link component={NextLink} href="/privacy" color="primary">
+                Privacy Policy
+              </Link>
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
     </Container>

@@ -3,6 +3,29 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import PinterestProvider from 'next-auth/providers/pinterest'
 import { prisma } from './prisma'
 
+// Extend the Profile type for Pinterest
+interface PinterestProfile {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
+  bio: string
+  created_at: string
+  image: {
+    '60x60': {
+      url: string
+      width: number
+      height: number
+    }
+  }
+  counts: {
+    followers: number
+    following: number
+    pins: number
+    boards: number
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -17,17 +40,22 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, user }) {
       if (account && profile) {
+        const pinterestProfile = profile as unknown as PinterestProfile
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
-        token.pinterestId = profile.id
-        token.username = profile.username
+        token.pinterestId = pinterestProfile.id
+        token.username = pinterestProfile.username
+      }
+      if (user) {
+        token.sub = user.id
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
+        session.user.id = token.sub as string
         session.accessToken = token.accessToken as string
         session.refreshToken = token.refreshToken as string
         session.pinterestId = token.pinterestId as string
@@ -38,17 +66,18 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'pinterest' && profile) {
         try {
+          const pinterestProfile = profile as unknown as PinterestProfile
           // Store or update Pinterest account info
           await prisma.pinterestAccount.upsert({
-            where: { pinterestId: profile.id as string },
+            where: { pinterestId: pinterestProfile.id },
             update: {
               accessToken: account.access_token as string,
               refreshToken: account.refresh_token as string,
               tokenExpires: account.expires_at ? new Date(account.expires_at * 1000) : null,
             },
             create: {
-              pinterestId: profile.id as string,
-              username: profile.username as string,
+              pinterestId: pinterestProfile.id,
+              username: pinterestProfile.username,
               accessToken: account.access_token as string,
               refreshToken: account.refresh_token as string,
               tokenExpires: account.expires_at ? new Date(account.expires_at * 1000) : null,

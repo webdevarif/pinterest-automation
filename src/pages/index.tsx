@@ -10,6 +10,7 @@ import {
   CardContent,
   Grid,
   Paper,
+  Link,
 } from '@mui/material'
 import {
   Pinterest,
@@ -17,6 +18,7 @@ import {
   Api,
   Analytics,
 } from '@mui/icons-material'
+import NextLink from 'next/link'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -136,6 +138,15 @@ export default function Home() {
           Get Started
         </Button>
       </Paper>
+
+      <Box sx={{ mt: 4, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          By using our service, you agree to our{' '}
+          <Link component={NextLink} href="/privacy" color="primary">
+            Privacy Policy
+          </Link>
+        </Typography>
+      </Box>
     </Container>
   )
 }

@@ -12,6 +12,7 @@ A comprehensive Pinterest automation tool built with Next.js, TypeScript, and Ma
 - 📊 **Dashboard** - Beautiful Material UI dashboard for managing content
 - 🔧 **Board Management** - View and manage your Pinterest boards
 - ⚡ **Real-time Status** - Track pin posting status and errors
+- 🔒 **Privacy Policy** - Comprehensive privacy policy page with data protection details
 
 ## Tech Stack
 
