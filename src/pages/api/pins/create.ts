@@ -21,19 +21,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const session = await getServerSession(req, res, authOptions)
-    if (!session?.accessToken || !session.pinterestId) {
+    if (!session?.user?.id) {
       return res.status(401).json({ message: 'Unauthorized' })
     }
 
     const body = createPinSchema.parse(req.body)
     const { boardId, title, description, imageUrl, link, scheduledAt } = body
 
-    const pinterestAccount = await prisma.pinterestAccount.findFirst({
-      where: { pinterestId: session.pinterestId },
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        pinterestAccessToken: true,
+        pinterestClientId: true,
+        pinterestClientSecret: true,
+      }
     })
 
-    if (!pinterestAccount) {
-      return res.status(404).json({ message: 'Pinterest account not found' })
+    if (!user?.pinterestAccessToken) {
+      return res.status(401).json({ message: 'Please setup your Pinterest API first' })
     }
 
     const scheduledDate = scheduledAt ? new Date(scheduledAt) : new Date()
@@ -41,7 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // If scheduled for immediate posting
     if (scheduledDate <= new Date()) {
       try {
-        const pinterestAPI = new PinterestAPI(session.accessToken)
+        const pinterestAPI = new PinterestAPI(
+          user.pinterestAccessToken,
+          user.pinterestClientId || undefined,
+          user.pinterestClientSecret || undefined
+        )
         const pin = await pinterestAPI.createPin({
           board_id: boardId,
           title,
@@ -57,7 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const pinQueue = await prisma.pinQueue.create({
           data: {
             userId: session.user.id,
-            pinterestAccountId: pinterestAccount.id,
             boardId,
             title,
             description,
@@ -79,7 +87,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const pinQueue = await prisma.pinQueue.create({
         data: {
           userId: session.user.id,
-          pinterestAccountId: pinterestAccount.id,
           boardId,
           title,
           description,

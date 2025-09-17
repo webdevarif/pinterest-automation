@@ -28,8 +28,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       include: {
-        pinterestAccount: true,
-        board: true,
+        user: {
+          select: {
+            pinterestAccessToken: true,
+            pinterestClientId: true,
+            pinterestClientSecret: true,
+            pinterestTokenExpires: true,
+          }
+        },
       },
       orderBy: {
         scheduledAt: 'asc',
@@ -42,30 +48,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const pin of pendingPins) {
       try {
         // Check if token is expired and refresh if needed
-        let accessToken = pin.pinterestAccount.accessToken
-        if (pin.pinterestAccount.tokenExpires && pin.pinterestAccount.tokenExpires <= now) {
-          if (pin.pinterestAccount.refreshToken) {
-            const pinterestAPI = new PinterestAPI(accessToken)
-            const newTokens = await pinterestAPI.refreshAccessToken(pin.pinterestAccount.refreshToken)
-            
-            // Update tokens in database
-            await prisma.pinterestAccount.update({
-              where: { id: pin.pinterestAccount.id },
-              data: {
-                accessToken: newTokens.access_token,
-                refreshToken: newTokens.refresh_token,
-                tokenExpires: new Date(Date.now() + newTokens.expires_in * 1000),
-              },
-            })
-            
-            accessToken = newTokens.access_token
-          } else {
-            throw new Error('Token expired and no refresh token available')
-          }
+        let accessToken = pin.user.pinterestAccessToken
+        if (pin.user.pinterestTokenExpires && pin.user.pinterestTokenExpires <= now) {
+          // For client credentials flow, we need to get a new token
+          const pinterestAPI = new PinterestAPI(
+            accessToken,
+            pin.user.pinterestClientId || undefined,
+            pin.user.pinterestClientSecret || undefined
+          )
+          const newTokens = await pinterestAPI.refreshAccessToken('') // Empty refresh token for client credentials
+          
+          // Update tokens in database
+          await prisma.user.update({
+            where: { id: pin.userId },
+            data: {
+              pinterestAccessToken: newTokens.access_token,
+              pinterestTokenExpires: new Date(Date.now() + newTokens.expires_in * 1000),
+            },
+          })
+          
+          accessToken = newTokens.access_token
         }
 
         // Create the pin
-        const pinterestAPI = new PinterestAPI(accessToken)
+        const pinterestAPI = new PinterestAPI(
+          accessToken,
+          pin.user.pinterestClientId || undefined,
+          pin.user.pinterestClientSecret || undefined
+        )
         const createdPin = await pinterestAPI.createPin({
           board_id: pin.boardId!,
           title: pin.title,

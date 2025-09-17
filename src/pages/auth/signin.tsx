@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Link,
 } from '@mui/material'
-import { Pinterest } from '@mui/icons-material'
+import { Google } from '@mui/icons-material'
 import NextLink from 'next/link'
 
 export default function SignIn() {
@@ -20,7 +20,7 @@ export default function SignIn() {
 
   useEffect(() => {
     if (session) {
-      router.push('/dashboard')
+      router.push('/setup/pinterest')
     }
   }, [session, router])
 
@@ -38,21 +38,21 @@ export default function SignIn() {
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Card>
         <CardContent sx={{ p: 4, textAlign: 'center' }}>
-          <Pinterest sx={{ fontSize: 80, color: 'primary.main', mb: 3 }} />
+          <Google sx={{ fontSize: 80, color: 'primary.main', mb: 3 }} />
           <Typography variant="h4" component="h1" gutterBottom>
             Sign In
           </Typography>
           <Typography variant="body1" color="text.secondary" paragraph>
-            Connect your Pinterest account to start automating your content
+            Sign in with Google to start automating your Pinterest content
           </Typography>
           <Button
             variant="contained"
             size="large"
-            startIcon={<Pinterest />}
-            onClick={() => signIn('pinterest')}
+            startIcon={<Google />}
+            onClick={() => signIn('google')}
             sx={{ mt: 3, px: 4, py: 1.5 }}
           >
-            Connect with Pinterest
+            Sign in with Google
           </Button>
           
           <Box sx={{ mt: 3 }}>

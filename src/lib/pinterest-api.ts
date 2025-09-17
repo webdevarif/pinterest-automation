@@ -94,10 +94,14 @@ export interface PinterestPin {
 
 export class PinterestAPI {
   private accessToken: string
+  private clientId?: string
+  private clientSecret?: string
   private baseURL = 'https://api.pinterest.com/v5'
 
-  constructor(accessToken: string) {
+  constructor(accessToken: string, clientId?: string, clientSecret?: string) {
     this.accessToken = accessToken
+    this.clientId = clientId
+    this.clientSecret = clientSecret
   }
 
   private getHeaders() {
@@ -152,11 +156,15 @@ export class PinterestAPI {
   }
 
   async refreshAccessToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
+    if (!this.clientId || !this.clientSecret) {
+      throw new Error('Client ID and Client Secret are required for token refresh')
+    }
+
     const response = await axios.post('https://api.pinterest.com/v5/oauth/token', {
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
-      client_id: process.env.PINTEREST_CLIENT_ID,
-      client_secret: process.env.PINTEREST_CLIENT_SECRET,
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
     })
     return response.data
   }

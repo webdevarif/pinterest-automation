@@ -33,10 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [pins, total] = await Promise.all([
       prisma.pinQueue.findMany({
         where,
-        include: {
-          pinterestAccount: true,
-          board: true,
-        },
         orderBy: {
           scheduledAt: 'desc',
         },

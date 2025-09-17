@@ -59,9 +59,9 @@ DATABASE_URL="mysql://username:password@localhost:3306/pinterest_automation"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-here"
 
-# Pinterest OAuth
-PINTEREST_CLIENT_ID="your-pinterest-client-id"
-PINTEREST_CLIENT_SECRET="your-pinterest-client-secret"
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 # Chrome Extension API
 CHROME_EXTENSION_SECRET="your-chrome-extension-secret"

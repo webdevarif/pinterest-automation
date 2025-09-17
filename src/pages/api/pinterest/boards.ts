@@ -11,44 +11,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const session = await getServerSession(req, res, authOptions)
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    const pinterestAPI = new PinterestAPI(session.accessToken)
-    const boards = await pinterestAPI.getBoards()
-
-    // Store boards in database
-    const pinterestAccount = await prisma.pinterestAccount.findFirst({
-      where: { pinterestId: session.pinterestId },
+    // Get user's Pinterest credentials and access token
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        pinterestAccessToken: true,
+        pinterestClientId: true,
+        pinterestClientSecret: true,
+      }
     })
 
-    if (pinterestAccount) {
-      for (const board of boards) {
-        await prisma.pinterestBoard.upsert({
-          where: {
-            pinterestAccountId_boardId: {
-              pinterestAccountId: pinterestAccount.id,
-              boardId: board.id,
-            },
-          },
-          update: {
-            name: board.name,
-            description: board.description,
-            url: board.url,
-            pinCount: board.pin_count,
-          },
-          create: {
-            pinterestAccountId: pinterestAccount.id,
-            boardId: board.id,
-            name: board.name,
-            description: board.description,
-            url: board.url,
-            pinCount: board.pin_count,
-          },
-        })
-      }
+    if (!user?.pinterestAccessToken) {
+      return res.status(401).json({ message: 'Please setup your Pinterest API first' })
     }
+
+    const pinterestAPI = new PinterestAPI(
+      user.pinterestAccessToken,
+      user.pinterestClientId || undefined,
+      user.pinterestClientSecret || undefined
+    )
+    const boards = await pinterestAPI.getBoards()
 
     res.status(200).json(boards)
   } catch (error) {

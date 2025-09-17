@@ -86,9 +86,24 @@ export default function Dashboard() {
     if (status === 'unauthenticated') {
       router.push('/')
     } else if (session) {
-      fetchData()
+      checkPinterestSetup()
     }
   }, [session, status, router])
+
+  const checkPinterestSetup = async () => {
+    try {
+      const response = await fetch('/api/pinterest/boards')
+      if (response.status === 401) {
+        // User needs to set up Pinterest account
+        router.push('/setup/pinterest')
+        return
+      }
+      fetchData()
+    } catch (error) {
+      console.error('Error checking Pinterest setup:', error)
+      router.push('/setup/pinterest')
+    }
+  }
 
   const fetchData = async () => {
     try {

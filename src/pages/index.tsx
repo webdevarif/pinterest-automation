@@ -17,6 +17,7 @@ import {
   Schedule,
   Api,
   Analytics,
+  Google,
 } from '@mui/icons-material'
 import NextLink from 'next/link'
 
@@ -26,7 +27,8 @@ export default function Home() {
 
   useEffect(() => {
     if (session) {
-      router.push('/dashboard')
+      // Check if user has Pinterest account set up
+      router.push('/setup/pinterest')
     }
   }, [session, router])
 
@@ -51,11 +53,11 @@ export default function Home() {
         <Button
           variant="contained"
           size="large"
-          startIcon={<Pinterest />}
-          onClick={() => signIn('pinterest')}
+          startIcon={<Google />}
+          onClick={() => signIn('google')}
           sx={{ mt: 3, px: 4, py: 1.5 }}
         >
-          Connect with Pinterest
+          Sign in with Google
         </Button>
       </Box>
 
@@ -131,8 +133,8 @@ export default function Home() {
         <Button
           variant="contained"
           size="large"
-          startIcon={<Pinterest />}
-          onClick={() => signIn('pinterest')}
+          startIcon={<Google />}
+          onClick={() => signIn('google')}
           sx={{ mt: 2 }}
         >
           Get Started
